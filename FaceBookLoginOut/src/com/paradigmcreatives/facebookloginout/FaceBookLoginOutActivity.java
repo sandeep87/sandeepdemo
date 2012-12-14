@@ -1,138 +1,151 @@
 package com.paradigmcreatives.facebookloginout;
 
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.net.MalformedURLException;
 import android.app.Activity;
-import android.content.Intent;
 import android.os.Bundle;
-
-import android.util.Log;
+import android.os.Looper;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
+import com.facebook.android.AsyncFacebookRunner;
+import com.facebook.android.AsyncFacebookRunner.RequestListener;
 import com.facebook.android.DialogError;
 import com.facebook.android.Facebook;
 import com.facebook.android.Facebook.DialogListener;
 import com.facebook.android.FacebookError;
 
 public class FaceBookLoginOutActivity extends Activity {
-	
+
 	/** Called when the activity is first created. */
 	static Facebook mFacebook = new Facebook("250823521707781");
-	private Button mButton;
-	private TextView mTextView;
+	private Button login;
+	private Button logout;
+	private Button post_on_wall;
+
+	private final static String[] FACEBOOK_PERMISSION = { "publish_stream",
+			"read_stream" };
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.main);
-		
-		
-		
 
-		
-		mButton = (Button) findViewById(R.id.login);
-		mButton.setOnClickListener(new OnClickListener() {
+		login = (Button) findViewById(R.id.login);
+		logout = (Button) findViewById(R.id.logout);
+		post_on_wall = (Button) findViewById(R.id.post_on_wall);
+		logout.setVisibility(View.GONE);
+		post_on_wall.setVisibility(View.GONE);
+		login.setOnClickListener(new OnClickListener() {
 
 			@Override
 			public void onClick(View v) {
 				mFacebook.authorize(FaceBookLoginOutActivity.this,
-						new DialogListener() {
+						FACEBOOK_PERMISSION, new DialogListener() {
 
 							@Override
 							public void onComplete(Bundle values) {
-								Toast.makeText(getApplicationContext(),
-										"You are Logged in.", Toast.LENGTH_LONG)
-										.show();
-								/*try {
-									mTextView = (TextView) findViewById(R.id.text_view);
-									mTextView.setText("Hi this is my first app");
-								    String message = String.valueOf(mTextView.getText());
-								    Bundle parameters = new Bundle();
-								    parameters.putString("message", message);
-								    mFacebook.request("me/feed", parameters, "POST");
-								} catch (Exception e) {
-								}*/
-								/*try{
-							        Bundle parameters = new Bundle();
-							        parameters.putString("message", "Text is lame. Listen up:");
-							        parameters.putString("name", "Name");
-							        parameters.putString("link", "http://www.google.com");
-							        parameters.putString("caption", "Caption");
-							        parameters.putString("description", "Description");
-
-							        String  response = mFacebook.request("me/feed",parameters,"POST");
-							        Log.v("response", response);
-							    }
-							    catch(Exception e){}*/
-								
-								Intent intent = new Intent(
-										FaceBookLoginOutActivity.this,
-										SecondActivity.class);
-								startActivity(intent);
-
-							}
-
-							private void postOnWall(String msg) {
-								Log.d("Tests", "Testing graph API wall post");
-							    try {
-							        String response = mFacebook.request("me");
-							        Bundle parameters = new Bundle();
-							        parameters.putString("message", msg);
-							        parameters.putString("description", "test test test");
-							        response = mFacebook.request("me/feed", parameters,
-							                "POST");
-							        Log.d("Tests", "got response: " + response);
-							        if (response == null || response.equals("") ||
-							                response.equals("false")) {
-							           Log.v("Error", "Blank response");
-							        }
-							    } 
-							    catch(Exception e) {
-							        e.printStackTrace();
-							    }
-								
+								Toast.makeText(
+										getApplicationContext(),
+										"You are Logged in."
+												+ values.getString("access_token"),
+										Toast.LENGTH_LONG).show();
+								login.setVisibility(View.GONE);
+								logout.setVisibility(View.VISIBLE);
+								post_on_wall.setVisibility(View.VISIBLE);
 							}
 
 							@Override
 							public void onFacebookError(FacebookError e) {
-								// TODO Auto-generated method stub
-
 							}
 
 							@Override
 							public void onError(DialogError e) {
-								// TODO Auto-generated method stub
-
 							}
 
 							@Override
 							public void onCancel() {
-
 							}
-
 						});
 
 			}
 		});
-		/*public postOnWall(String msg) {
-		    Log.d("Tests", "Testing graph API wall post");
-		    try {
-		        String response = mFacebook.request("me");
-		        Bundle parameters = new Bundle();
-		        parameters.putString("message", msg);
-		        parameters.putString("description", "test test test");
-		        response = mFacebook.request("me/feed", parameters,
-		                "POST");
-		        Log.d("Tests", "got response: " + response);
-		        if (response == null || response.equals("") ||
-		                response.equals("false")) {
-		           Log.v("Error", "Blank response");
-		        }
-		    } 
-		    catch(Exception e) {
-		        e.printStackTrace();
-		    }
-		}*/
+
+		logout.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				new AsyncFacebookRunner(FaceBookLoginOutActivity.mFacebook)
+						.logout(getApplicationContext(), new RequestListener() {
+
+							@Override
+							public void onMalformedURLException(
+									MalformedURLException e, Object state) {
+
+							}
+
+							@Override
+							public void onIOException(IOException e,
+									Object state) {
+
+							}
+
+							@Override
+							public void onFileNotFoundException(
+									FileNotFoundException e, Object state) {
+
+							}
+
+							@Override
+							public void onFacebookError(FacebookError e,
+									Object state) {
+
+							}
+
+							@Override
+							public void onComplete(String response, Object state) {
+								Looper.prepare();
+								Toast.makeText(FaceBookLoginOutActivity.this,
+										"You are loggedout successfully",
+										Toast.LENGTH_LONG).show();
+
+								finish();
+								System.out.println("your response:" + response);
+								Looper.loop();
+
+							}
+						});
+			}
+		});
+
+		post_on_wall.setOnClickListener(new OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				postOnWall("http://www.paradigmcreatives.com/");
+			}
+		});
+
+	}
+
+	private void postOnWall(String msg) {
+		if (mFacebook.isSessionValid()) {
+			Bundle parameters = new Bundle();
+			parameters.putString("link", msg);
+			try {
+				String response = mFacebook.request("me/feed", parameters,
+						"POST");
+				System.out.println("Response:" + response);
+			} catch (FileNotFoundException e) {
+				e.printStackTrace();
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+		}
+
 	}
 }

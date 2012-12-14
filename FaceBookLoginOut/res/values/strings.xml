@@ -4,6 +4,7 @@
     <string name="hello">Hello World, FaceBookLoginOutActivity!</string>
     <string name="app_name">FaceBookLoginOut</string>
     <string name="button">Login</string>
-    <string name="text1">logout</string>
+    <string name="post_on_wall">Post</string>
+    <string name="logout">logout</string>
 
 </resources>
